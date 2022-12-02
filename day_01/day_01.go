@@ -1,7 +1,5 @@
 package day_01
 
-import "fmt"
-
 func getTopCalorieElf(data [][]int) (maxElf int, maxCalCount int) {
 	// Given an array of int arrays, return the index of the array with the highest sum
 
@@ -45,7 +43,6 @@ func getTopNElves(data [][]int, n int) (maxElves []elf) {
 					break
 				}
 			}
-			fmt.Println(maxElves)
 		}
 	}
 	return maxElves

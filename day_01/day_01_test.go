@@ -2,7 +2,6 @@ package day_01
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
 	"testing"
@@ -52,5 +51,4 @@ func TestGetTopCalorieElf(t *testing.T) {
 	if gotSum != wantSum {
 		t.Fatal("Got", gotSum, "want", wantSum)
 	}
-	fmt.Println(gotTopThreeElves)
 }
