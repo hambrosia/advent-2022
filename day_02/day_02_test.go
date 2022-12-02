@@ -52,4 +52,31 @@ func TestCalculateScore(t *testing.T) {
 		})
 	}
 
+	correctCodecTestCases := map[string]struct {
+		input [][]string
+		want  []int
+	}{
+		"example": {
+			input: [][]string{{"A", "Y"}, {"B", "X"}, {"C", "Z"}},
+			want:  []int{18, 11},
+		},
+		"largeExample": {
+			input: data,
+			want:  []int{14112, 12091},
+		},
+	}
+
+	for name, tc := range correctCodecTestCases {
+		t.Run(name, func(t *testing.T) {
+			got1, got2 := calculateScoreWithCorrectCodec(tc.input)
+			if got1 != tc.want[0] {
+				t.Errorf("Got %v, want %v", got1, tc.want[0])
+			}
+			if got2 != tc.want[1] {
+				t.Errorf("Got %v, want %v", got2, tc.want[1])
+			}
+			fmt.Println(name, got1, got2)
+		})
+	}
+
 }
