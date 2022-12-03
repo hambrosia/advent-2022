@@ -31,11 +31,11 @@ func TestCalculateScore(t *testing.T) {
 	}{
 		"example": {
 			input: [][]string{{"A", "Y"}, {"B", "X"}, {"C", "Z"}},
-			want:  []int{17, 15},
+			want:  []int{14, 15},
 		},
 		"largeExample": {
 			input: data,
-			want:  []int{12449, 14163},
+			want:  []int{9188, 14163},
 		},
 	}
 
@@ -58,11 +58,11 @@ func TestCalculateScore(t *testing.T) {
 	}{
 		"example": {
 			input: [][]string{{"A", "Y"}, {"B", "X"}, {"C", "Z"}},
-			want:  []int{18, 11},
+			want:  []int{12, 12},
 		},
 		"largeExample": {
 			input: data,
-			want:  []int{14112, 12091},
+			want:  []int{11538, 12091},
 		},
 	}
 

@@ -39,7 +39,7 @@ func (choice1 RPSChoice) challenge(choice2 RPSChoice) (choice1Points int, choice
 	if choice1.beats == choice2.name {
 		return choice1.value + RPSOutcomeValues["w"], choice2.value + RPSOutcomeValues["l"]
 	} else {
-		return choice1Points + RPSOutcomeValues["d"], choice2.value + RPSOutcomeValues["w"]
+		return choice1Points + RPSOutcomeValues["l"], choice2.value + RPSOutcomeValues["w"]
 	}
 }
 
