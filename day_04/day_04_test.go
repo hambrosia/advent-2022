@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestDay03(t *testing.T) {
+func TestDay04(t *testing.T) {
 
 	file, err := os.Open("input.txt")
 	if err != nil {
