@@ -1,4 +1,4 @@
-package day07
+package main
 
 import (
 	"fmt"
@@ -15,3 +15,4 @@ func TestDay07(t *testing.T) {
 	fmt.Println("Answer")
 	fmt.Println(res)
 }
+
