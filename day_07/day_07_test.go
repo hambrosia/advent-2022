@@ -11,7 +11,7 @@ func TestDay07(t *testing.T) {
 		t.Error("error reading file", err)
 	}
 	tree, sizes := ParseTestData(testSmallInput)
-	p1Got, p2Got := GetSizeOfFolders(tree, sizes)
+	p1Got, p2Got, rootGot := GetSizeOfFolders(tree, sizes)
 
 	p1Want := 95437
 	if p1Got != p1Want {
@@ -24,12 +24,17 @@ func TestDay07(t *testing.T) {
 		t.Errorf("got %v, want %v", p2Got, p2Want)
 	}
 
+	rootWant := 48381165
+	if rootGot != rootWant {
+		t.Errorf("got %v, want %v", rootGot, rootWant)
+	}
+
 	testBigInput, errBig := GetTestData("large_input.txt")
 	if errBig != nil {
 		t.Error("error reading file", err)
 	}
 	treeBig, sizesBig := ParseTestData(testBigInput)
-	p1GotBig, p2GotBig := GetSizeOfFolders(treeBig, sizesBig)
+	p1GotBig, p2GotBig, _ := GetSizeOfFolders(treeBig, sizesBig)
 
 	p1WantBig := 1611443
 	if p1GotBig != p1WantBig {
