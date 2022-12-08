@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -54,7 +55,9 @@ out:
 
 				if strings.HasPrefix(data[j], "dir") {
 					// folder found add to folder tree
-					folderTree[pathString] = append(folderTree[pathString], fields[1])
+					newFolderName := pathString + "." + fields[1]
+					fmt.Println(newFolderName)
+					folderTree[pathString] = append(folderTree[pathString], newFolderName)
 				}
 				if j == len(data)-1 {
 					break out
@@ -71,31 +74,47 @@ out:
 	return folderTree, folderSizes
 }
 
-func GetSizeOfFolders(folderTree map[string][]string, folderSizes map[string]int) (p1 int, p2 int) {
+func GetSizeOfFolders(folderTree map[string][]string, folderSizes map[string]int) (p1 int, p2 int, rootSize int) {
 	fmt.Println("root size", folderSizes["/"])
 
-	 
+	// fmt.Println(folderTree)
 
-	for name := range folderSizes {
-		if _, ok := folderTree[name]; !ok {
-			fmt.Println("end found", name, folderSizes[name])
-			fmt.Println()
-			folders := strings.Split(name, ".")
-			for i := len(folders); i > 1; i-- {
-				folder := strings.Join(folders[:i], ".")
-				parent := strings.Join(folders[:i-1], ".")
-				fmt.Println("updating parent of", folder)
-				fmt.Println("folder has", folderSizes[folder])
-				fmt.Println("parent has", folderSizes[parent])
-				// add current folder size to parent
-				folderSizes[parent] += folderSizes[folder]
-				fmt.Println("parent new value", folderSizes[parent])
-			}
-		} else {
-			fmt.Println("skippin")
+	childlessFolders := make([]string, 0)
+	for folderName := range folderSizes {
+		if _, found := folderTree[folderName]; !found {
+			// childless folder found
+			childlessFolders = append(childlessFolders, folderName)
 		}
 	}
-	fmt.Println("root size", folderSizes["/"])
+
+	for i := len(childlessFolders) - 1; i >= 0; {
+		folderName := childlessFolders[i]
+		fmt.Println("start", i)
+		fmt.Println("childless folders", childlessFolders)
+		fields := strings.Split(folderName, ".")
+
+		parentName := strings.Join(fields[:len(fields)-1], ".")
+
+		folderSizes[parentName] += folderSizes[folderName]
+
+		childlessFolders = append(childlessFolders[:i], childlessFolders[i+1:]...)
+		i--
+
+		fmt.Println("folderName", folderName)
+		fmt.Println("parentName", parentName)
+
+		for j, childName := range folderTree[parentName] {
+			if childName == folderName {
+				folderTree[parentName] = append(folderTree[parentName][:j], folderTree[parentName][j+1:]...)
+			}
+			if len(folderTree[parentName]) < 1 {
+				fmt.Println("adding new childless folder", parentName)
+				childlessFolders = append(childlessFolders, parentName)
+				i++
+			}
+		}
+		fmt.Println("end", i)
+	}
 
 	// p1 answer
 	for _, val := range folderSizes {
@@ -104,29 +123,34 @@ func GetSizeOfFolders(folderTree map[string][]string, folderSizes map[string]int
 		}
 	}
 
-	fmt.Println("root size", folderSizes["/"])
-
 	// p2 answer
-	// foldersBySize := make([]string, 0, len(folderSizes))
-	// for name := range folderSizes {
-	// 	foldersBySize = append(foldersBySize, name)
-	// }
+	foldersBySize := make([]string, 0, len(folderSizes))
+	for name := range folderSizes {
+		foldersBySize = append(foldersBySize, name)
+	}
 
-	// sort.SliceStable(foldersBySize, func(i, j int) bool {
-	// 	return folderSizes[foldersBySize[i]] < folderSizes[foldersBySize[j]]
-	// })
+	sort.SliceStable(foldersBySize, func(i, j int) bool {
+		return folderSizes[foldersBySize[i]] > folderSizes[foldersBySize[j]]
+	})
 
-	// for name := range folderSizes {
-	// 	fmt.Println(name, folderSizes[name])
-	// }
+	maxFileSystem := 70000000
+	minFreeSpace := 30000000
+	rootSize = folderSizes["/"]
 
-	// for _, name := range foldersBySize {
-	// 	originalSize := folderSizes["/"]
-	// 	newSize := originalSize - folderSizes[name]
-	// 	if 70000000-newSize > 30000000 {
-	// 		p2 = folderSizes[name]
-	// 		break
-	// 	}
-	// }
-	return p1, p2
+	for name := range folderSizes {
+		fmt.Println(name, folderSizes[name])
+		if name == "/" {
+			continue
+		}
+		folderSize := folderSizes[name]
+		currentFreeSpace := maxFileSystem - rootSize
+		newFreeSpace := currentFreeSpace + folderSize
+		if newFreeSpace > minFreeSpace {
+			p2 = folderSize
+			break
+		}
+
+	}
+
+	return p1, p2, rootSize
 }

@@ -15,18 +15,18 @@ func TestDay07(t *testing.T) {
 
 	p1Want := 95437
 	if p1Got != p1Want {
-		t.Errorf("got %v, want %v", p1Got, p1Want)
+		t.Errorf("p1 small got %v, want %v", p1Got, p1Want)
 	}
 
 	p2Want := 24933642
 
 	if p2Got != p2Want {
-		t.Errorf("got %v, want %v", p2Got, p2Want)
+		t.Errorf("p2 small got %v, want %v", p2Got, p2Want)
 	}
 
 	rootWant := 48381165
 	if rootGot != rootWant {
-		t.Errorf("got %v, want %v", rootGot, rootWant)
+		t.Errorf("root small got %v, want %v", rootGot, rootWant)
 	}
 
 	testBigInput, errBig := GetTestData("large_input.txt")
@@ -41,12 +41,12 @@ func TestDay07(t *testing.T) {
 		t.Errorf("got %v, want %v", p1GotBig, p1WantBig)
 	}
 
-	p2WantBig := -1
+	p2WantBig := 2086088
 	maxFileSystem := 70000000
 	if p2GotBig > maxFileSystem {
 		t.Errorf("got %v, want < %v", p2GotBig, maxFileSystem)
 	}
-	if p2GotBig != p1WantBig {
+	if p2GotBig != p2WantBig {
 		t.Errorf("got %v, want %v", p2GotBig, p2WantBig)
 	}
 
