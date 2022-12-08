@@ -17,29 +17,28 @@ func GetTestData(filename string) (testData [][]int, err error) {
 
 	scanner := bufio.NewScanner(file)
 	testData = make([][]int, 0)
+
 	for scanner.Scan() {
 		treeLine := scanner.Text()
 		treeFields := strings.Split(treeLine, "")
-
 		treeInts := make([]int, 0)
 		for _, t := range treeFields {
 			tInt, _ := strconv.Atoi(t)
 			treeInts = append(treeInts, tInt)
 		}
-
 		testData = append(testData, treeInts)
 	}
+
 	return testData, err
 }
 
 func IsVisible(index int, val int, view []int, name string) bool {
 	if index == 0 || index == len(view)-1 {
-
 		return true
 	}
+
 	leftViz, rightViz := true, true
 	for _, compareVal := range view[:index] {
-
 		if compareVal >= val {
 			leftViz = false
 		}
@@ -50,8 +49,8 @@ func IsVisible(index int, val int, view []int, name string) bool {
 			rightViz = false
 		}
 	}
-	ret := (leftViz || rightViz)
 
+	ret := (leftViz || rightViz)
 	return ret
 }
 
@@ -72,7 +71,6 @@ func CalculateScenicScore(tree int, view []int, name string) int {
 	}
 	ret := i
 	return ret
-
 }
 
 func FindVisibleTrees(trees [][]int) (visibleCount int, visibleMap map[string]bool) {
@@ -83,15 +81,13 @@ func FindVisibleTrees(trees [][]int) (visibleCount int, visibleMap map[string]bo
 			// check if visible
 
 			val := trees[i][j]
-
 			xView := trees[i]
-
 			yView := make([]int, 0)
 
 			for k := 0; k < len(trees); k++ {
-
 				yView = append(yView, trees[k][j])
 			}
+
 			yViz := IsVisible(i, val, yView, "yView")
 			xViz := IsVisible(j, val, xView, "xView")
 			isViz := yViz || xViz
@@ -115,7 +111,7 @@ func ReverseIntSlice(original []int) (reversed []int) {
 	return reversed
 }
 
-func FindMostScenic(trees [][]int, visibleMap map[string]bool) (mostScenicValue int) {
+func FindMostScenic(trees [][]int) (mostScenicValue int) {
 	var mostScenicTree []int
 	for i := 0; i < len(trees); i++ {
 		row := trees[i]

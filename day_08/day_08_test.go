@@ -10,14 +10,14 @@ func TestTreeFinder(t *testing.T) {
 		t.Error("Unable to read test data")
 	}
 
-	gotVisibleSmall, gotSmallMap := FindVisibleTrees(testDataSmall)
+	gotVisibleSmall, _ := FindVisibleTrees(testDataSmall)
 	wantVisibleSmall := 21
 
 	if gotVisibleSmall != wantVisibleSmall {
 		t.Errorf("p1 small input got %v, want %v", gotVisibleSmall, wantVisibleSmall)
 	}
 
-	gotMostScenic := FindMostScenic(testDataSmall, gotSmallMap)
+	gotMostScenic := FindMostScenic(testDataSmall)
 	wantMostScenic := 8
 	if gotMostScenic != wantMostScenic {
 		t.Errorf("p2 small most scenic got %v, want %v", gotMostScenic, wantMostScenic)
@@ -28,14 +28,14 @@ func TestTreeFinder(t *testing.T) {
 		t.Error("Unable to read test data")
 	}
 
-	gotVisibleBig, gotBigMap := FindVisibleTrees(testDataBig)
+	gotVisibleBig, _ := FindVisibleTrees(testDataBig)
 	wantVisibleBig := 1805
 
 	if gotVisibleBig != wantVisibleBig {
 		t.Errorf("p1 big input got %v, want %v", gotVisibleBig, wantVisibleBig)
 	}
 
-	gotMostScenicBig := FindMostScenic(testDataBig, gotBigMap)
+	gotMostScenicBig := FindMostScenic(testDataBig)
 	wantMostScenicBig := 444528
 
 	if gotMostScenicBig != wantMostScenicBig {
