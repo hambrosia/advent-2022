@@ -14,7 +14,7 @@ func GetTestData(filename string) (data []string, err error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println(err)
-		return []string{}, errors.New("Unable to read input file")
+		return []string{}, errors.New("unable to read input file")
 	}
 	defer file.Close()
 
