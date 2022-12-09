@@ -56,7 +56,7 @@ out:
 				if strings.HasPrefix(data[j], "dir") {
 					// folder found add to folder tree
 					newFolderName := pathString + "." + fields[1]
-					fmt.Println(newFolderName)
+					// fmt.Println(newFolderName)
 					folderTree[pathString] = append(folderTree[pathString], newFolderName)
 				}
 				if j == len(data)-1 {
@@ -89,8 +89,8 @@ func GetSizeOfFolders(folderTree map[string][]string, folderSizes map[string]int
 
 	for i := len(childlessFolders) - 1; i >= 0; {
 		folderName := childlessFolders[i]
-		fmt.Println("start", i)
-		fmt.Println("childless folders", childlessFolders)
+		// fmt.Println("start", i)
+		// fmt.Println("childless folders", childlessFolders)
 		fields := strings.Split(folderName, ".")
 
 		parentName := strings.Join(fields[:len(fields)-1], ".")
@@ -100,20 +100,16 @@ func GetSizeOfFolders(folderTree map[string][]string, folderSizes map[string]int
 		childlessFolders = append(childlessFolders[:i], childlessFolders[i+1:]...)
 		i--
 
-		fmt.Println("folderName", folderName)
-		fmt.Println("parentName", parentName)
-
 		for j, childName := range folderTree[parentName] {
 			if childName == folderName {
 				folderTree[parentName] = append(folderTree[parentName][:j], folderTree[parentName][j+1:]...)
 			}
 			if len(folderTree[parentName]) < 1 {
-				fmt.Println("adding new childless folder", parentName)
+				// fmt.Println("adding new childless folder", parentName)
 				childlessFolders = append(childlessFolders, parentName)
 				i++
 			}
 		}
-		fmt.Println("end", i)
 	}
 
 	// p1 answer
@@ -130,14 +126,14 @@ func GetSizeOfFolders(folderTree map[string][]string, folderSizes map[string]int
 	}
 
 	sort.SliceStable(foldersBySize, func(i, j int) bool {
-		return folderSizes[foldersBySize[i]] > folderSizes[foldersBySize[j]]
+		return folderSizes[foldersBySize[i]] < folderSizes[foldersBySize[j]]
 	})
 
 	maxFileSystem := 70000000
 	minFreeSpace := 30000000
 	rootSize = folderSizes["/"]
 
-	for name := range folderSizes {
+	for _, name := range foldersBySize {
 		fmt.Println(name, folderSizes[name])
 		if name == "/" {
 			continue
