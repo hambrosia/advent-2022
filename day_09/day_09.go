@@ -116,6 +116,13 @@ func MoveT(h Pair, t *Pair, tHistory map[string]struct{}) {
 
 }
 
+type Rope struct {
+	knots   []Pair
+	history map[string]struct{}
+}
+
+
+
 func main() {
 	// rope behavior
 	// the head (H) and tail (T) must always be touching (diagonally adjacent and even overlapping both count as touching
@@ -125,19 +132,37 @@ func main() {
 
 	motions := GetData("large_input.txt")
 	head := Pair{0, 0}
-	tail := Pair{0, 0}
+	tail1 := Pair{0, 0}
+	tail2 := Pair{0, 0}
+	tail3 := Pair{0, 0}
+	tail4 := Pair{0, 0}
+	tail5 := Pair{0, 0}
+	tail6 := Pair{0, 0}
+	tail7 := Pair{0, 0}
+	tail8 := Pair{0, 0}
+	tail9 := Pair{0, 0}
+
 	tHistory := make(map[string]struct{})
+	t9History := make(map[string]struct{})
 	for _, motion := range motions {
 		fmt.Println(motion.directionName, motion.steps)
 		fmt.Println()
 		for range make([]int, motion.steps) {
 			MoveH(&head, motion)
-			MoveT(head, &tail, tHistory)
+			MoveT(head, &tail1, tHistory)
+			MoveT(tail1, &tail2, tHistory)
+			MoveT(tail2, &tail3, tHistory)
+			MoveT(tail3, &tail4, tHistory)
+			MoveT(tail4, &tail5, tHistory)
+			MoveT(tail5, &tail6, tHistory)
+			MoveT(tail6, &tail7, tHistory)
+			MoveT(tail7, &tail8, tHistory)
+			MoveT(tail8, &tail9, t9History)
 			fmt.Println()
 		}
 	}
 	fmt.Println()
-	fmt.Println("t history", tHistory)
-	fmt.Println("history length", len(tHistory))
+	fmt.Println("t history", t9History)
+	fmt.Println("history length", len(t9History))
 
 }
