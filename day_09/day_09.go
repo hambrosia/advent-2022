@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+type Motion struct {
+	directionName string
+	direction     Pair
+	steps         int
+}
+
 func GetData(filename string) (motions []Motion) {
 	file, err := os.Open(filename)
 	if err != nil {
@@ -59,110 +65,72 @@ func (p Pair) ToString() string {
 	return strconv.Itoa(p.x) + "," + strconv.Itoa(p.y)
 }
 
-type Motion struct {
-	directionName string
-	direction     Pair
-	steps         int
+func (p *Pair) Push(motion Motion) {
+	p.x += motion.direction.x
+	p.y += motion.direction.y
 }
 
-func MoveH(coordinates *Pair, motion Motion) {
-	coordinates.x += motion.direction.x
-	coordinates.y += motion.direction.y
-}
-
-func MoveT(h Pair, t *Pair, tHistory map[string]struct{}) {
-
-	fmt.Println("START")
-	fmt.Println("head", h)
-	fmt.Println("tail", t)
-	// move t based on relation to h
-	dist := t.Distance(h)
+func (p *Pair) Pull(h Pair, tHistory map[string]struct{}) {
+	dist := p.Distance(h)
 	if dist <= math.Sqrt(2) {
-		// ensure position of t in history and continue
-		tHistory[t.ToString()] = struct{}{}
+		// ensure position of tail in history and continue
+		tHistory[p.ToString()] = struct{}{}
 		return
 	}
-	fmt.Println("distance from t to h", dist)
-	aoi := t.AngleOfIncline(h)
-	fmt.Println("aoi from t to h", aoi)
-	// move t one step in direction of h and update t history
+	aoi := p.AngleOfIncline(h)
 	switch {
 	case aoi == 0:
-		t.x += 1
+		p.x += 1
 	case aoi == 90:
-		t.y += 1
+		p.y += 1
 	case aoi == 180:
-		t.x -= 1
+		p.x -= 1
 	case aoi == 270:
-		t.y -= 1
+		p.y -= 1
 	case 0 < aoi && aoi < 90:
-		t.y += 1
-		t.x += 1
+		p.y += 1
+		p.x += 1
 	case 90 < aoi && aoi < 180:
-		t.y += 1
-		t.x -= 1
+		p.y += 1
+		p.x -= 1
 	case 180 < aoi && aoi < 270:
-		t.y -= 1
-		t.x -= 1
+		p.y -= 1
+		p.x -= 1
 	case 270 < aoi && aoi < 360:
-		t.y -= 1
-		t.x += 1
+		p.y -= 1
+		p.x += 1
 	}
-
-	tHistory[t.ToString()] = struct{}{}
-	fmt.Println("END")
-	fmt.Println("head", h)
-	fmt.Println("tail", t)
-
+	tHistory[p.ToString()] = struct{}{}
 }
 
 type Rope struct {
+	length  int
 	knots   []Pair
 	history map[string]struct{}
 }
 
+func MakeRope(length int) Rope {
+	return Rope{
+		length,
+		make([]Pair, length),
+		map[string]struct{}{},
+	}
+}
 
-
-func main() {
-	// rope behavior
-	// the head (H) and tail (T) must always be touching (diagonally adjacent and even overlapping both count as touching
-	// If the head is ever two steps directly up, down, left, or right from the tail, the tail must also move one step in that direction so it remains close enough
-	// Otherwise, if the head and tail aren't touching and aren't in the same row or column, the tail always moves one step diagonally to keep up
-	// output is number of positions (T) occupied at least once, e.g. set of T coordinates
-
-	motions := GetData("large_input.txt")
-	head := Pair{0, 0}
-	tail1 := Pair{0, 0}
-	tail2 := Pair{0, 0}
-	tail3 := Pair{0, 0}
-	tail4 := Pair{0, 0}
-	tail5 := Pair{0, 0}
-	tail6 := Pair{0, 0}
-	tail7 := Pair{0, 0}
-	tail8 := Pair{0, 0}
-	tail9 := Pair{0, 0}
-
-	tHistory := make(map[string]struct{})
-	t9History := make(map[string]struct{})
+func (rope *Rope) Move(motions []Motion) {
 	for _, motion := range motions {
-		fmt.Println(motion.directionName, motion.steps)
-		fmt.Println()
 		for range make([]int, motion.steps) {
-			MoveH(&head, motion)
-			MoveT(head, &tail1, tHistory)
-			MoveT(tail1, &tail2, tHistory)
-			MoveT(tail2, &tail3, tHistory)
-			MoveT(tail3, &tail4, tHistory)
-			MoveT(tail4, &tail5, tHistory)
-			MoveT(tail5, &tail6, tHistory)
-			MoveT(tail6, &tail7, tHistory)
-			MoveT(tail7, &tail8, tHistory)
-			MoveT(tail8, &tail9, t9History)
-			fmt.Println()
+			for i := 0; i < rope.length; i++ {
+				switch {
+				case i == 0:
+					rope.knots[i].Push(motion)
+				case i == rope.length-1:
+					rope.knots[i].Pull(rope.knots[i-1], rope.history)
+				case 0 < i && i < rope.length-1:
+					throwAwayHistory := make(map[string]struct{})
+					rope.knots[i].Pull(rope.knots[i-1], throwAwayHistory)
+				}
+			}
 		}
 	}
-	fmt.Println()
-	fmt.Println("t history", t9History)
-	fmt.Println("history length", len(t9History))
-
 }
