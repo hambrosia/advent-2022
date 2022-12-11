@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/big"
 	"os"
 	"strconv"
 	"strings"
@@ -10,10 +11,10 @@ import (
 
 type Monkey struct {
 	id              int
-	items           []int
+	items           []big.Int
 	inspectOperator string
 	inspectOperand  string
-	testOperand     int
+	testOperand     big.Int
 	testTrueDest    int
 	testFalseDest   int
 	inspectedCount  int
@@ -29,7 +30,13 @@ testOperand: %v
 testTrueDest: %v
 testFalseDest %v
 inspectedCount %v`,
-		m.id, m.items, m.inspectOperator, m.inspectOperand, m.testOperand, m.testTrueDest, m.testFalseDest, m.inspectedCount,
+		m.id, m.items,
+		m.inspectOperator,
+		m.inspectOperand,
+		m.testOperand,
+		m.testTrueDest,
+		m.testFalseDest,
+		m.inspectedCount,
 	)
 }
 
@@ -54,11 +61,12 @@ func makeMonkeys(filname string) (monkeyList []Monkey) {
 			id, _ := strconv.Atoi(strings.TrimSuffix(lineFields[1], ":"))
 			tmpMonkey.id = id
 		case lineFields[0] == "Starting":
-			items := make([]int, 0)
+			items := make([]big.Int, 0)
 			for _, item := range lineFields[2:] {
 				item := strings.TrimSuffix(item, ",")
 				itemValue, _ := strconv.Atoi(item)
-				items = append(items, itemValue)
+				itemBig := big.NewInt(int64(itemValue))
+				items = append(items, *itemBig)
 			}
 			tmpMonkey.items = items
 		case lineFields[0] == "Operation:":
@@ -69,7 +77,8 @@ func makeMonkeys(filname string) (monkeyList []Monkey) {
 			if err != nil {
 				fmt.Println(err)
 			}
-			tmpMonkey.testOperand = testOperandValue
+			testOperandBig := big.NewInt(int64(testOperandValue))
+			tmpMonkey.testOperand = *testOperandBig
 		case strings.HasPrefix(line, "    If true"):
 			testTrueDest, _ := strconv.Atoi(lineFields[5])
 			tmpMonkey.testTrueDest = testTrueDest
@@ -84,33 +93,54 @@ func makeMonkeys(filname string) (monkeyList []Monkey) {
 }
 
 func (m *Monkey) DoOneTurn(monkeys *[]Monkey) {
-
+	zeroBig := big.NewInt(0)
 	for i := range m.items {
 		m.inspectedCount++
 		// update worry level
 		switch {
 		case m.inspectOperand == "old":
-			m.items[i] = m.items[i] * m.items[i]
+			m.items[i] = *m.items[i].Mul(&m.items[i], &m.items[i])
 		case m.inspectOperator == "*":
 			operand, _ := strconv.Atoi(m.inspectOperand)
-			m.items[i] *= operand
+			operandBig := big.NewInt(int64(operand))
+			if m.items[i].Mul(&m.items[i], operandBig).Cmp(zeroBig) < 0 {
+				fmt.Println("before")
+				fmt.Println(m.ToString())
+				fmt.Println("item:", m.items[i])
+				fmt.Println("operand:", operand)
+			}
+
+			m.items[i].Mul(&m.items[i], operandBig)
+			if m.items[i].Cmp(zeroBig) < 0 {
+				fmt.Println("illegal monkeybusiness!")
+				fmt.Println("after")
+				fmt.Println(m.ToString())
+				panic("cannot abide bad monkey business")
+			}
 		case m.inspectOperator == "+":
 			operand, _ := strconv.Atoi(m.inspectOperand)
-			m.items[i] += operand
+			operandBig := big.NewInt(int64(operand))
+			m.items[i].Add(&m.items[i], operandBig)
 		}
 		// calculate worry relief (worry / 3)
-		m.items[i] /= 3
+		// m.items[i] /= 10
 		// check if worry level is divisible by test operand
+		rem := big.NewInt(0)
+		rem.Rem(&m.items[i], &m.testOperand)
+		fmt.Printf("val %v, testOperand %v, remainder %v\n", m.items[i], m.testOperand, rem)
 		switch {
-		case m.items[i]%m.testOperand == 0:
+		case rem == zeroBig:
+			fmt.Println("assigning true monkey")
 			// assign item to true monkey
 			(*monkeys)[m.testTrueDest].items = append((*monkeys)[m.testTrueDest].items, m.items[i])
-		case m.items[i]%m.testOperand != 0:
+		case rem != zeroBig:
+			fmt.Println("assigning false monkey")
+
 			// assign to false monkey's items
 			(*monkeys)[m.testFalseDest].items = append((*monkeys)[m.testFalseDest].items, m.items[i])
 		}
 	}
-	m.items = []int{}
+	m.items = []big.Int{}
 }
 
 func PrintMonkeyStatus(monkeys []Monkey) {
@@ -140,23 +170,15 @@ func GetLevelOfMonkeyBusiness(monkeys []Monkey) (lomb int) {
 
 func main() {
 	monkeys := makeMonkeys("small_input.txt")
-	// for _, monkey := range monkeys[:1] {
-	// 	fmt.Println(monkey.ToString())
-	// 	fmt.Println()
-	// }
-	// fmt.Println(monkeys[0].ToString())
-	// monkeys[0].DoOneTurn(&monkeys)
-	// fmt.Println()
-	// fmt.Println(monkeys[0].ToString())
-	// fmt.Println()
-	// fmt.Println(monkeys[3].ToString())
 	for i := 0; i < 20; i++ {
 		for j, _ := range monkeys {
 			monkeys[j].DoOneTurn(&monkeys)
 		}
 	}
 
-	PrintMonkeyStatus(monkeys)
+	// PrintMonkeyStatus(monkeys)
 	PrintMonkeyInspectedCounts(monkeys)
 	fmt.Println(GetLevelOfMonkeyBusiness(monkeys))
+	// 2637590098 too low for large input
+
 }
