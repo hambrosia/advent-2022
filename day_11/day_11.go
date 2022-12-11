@@ -40,8 +40,8 @@ inspectedCount %v`,
 	)
 }
 
-func makeMonkeys(filname string) (monkeyList []Monkey) {
-	file, err := os.Open(filname)
+func MakeMonkeys(filename string) (monkeyList []Monkey) {
+	file, err := os.Open(filename)
 	if err != nil {
 		fmt.Println("Error: Bad Monkeys")
 	}
@@ -92,8 +92,9 @@ func makeMonkeys(filname string) (monkeyList []Monkey) {
 	return monkeyList
 }
 
-func (m *Monkey) DoOneTurn(monkeys *[]Monkey, reliefModifier int64) {
+func (m *Monkey) DoOneTurn(monkeys *[]Monkey, reliefModifier int64, compress bool) {
 	zeroBig := big.NewInt(0)
+	mmd := GetMultiMonkeyDivisor(*monkeys)
 	for i := range m.items {
 		bigOne := big.NewInt(1)
 		m.inspectedCount.Add(&m.inspectedCount, bigOne)
@@ -110,9 +111,16 @@ func (m *Monkey) DoOneTurn(monkeys *[]Monkey, reliefModifier int64) {
 			operandBig := big.NewInt(int64(operand))
 			m.items[i].Add(&m.items[i], operandBig)
 		}
-		// calculate worry relief (worry / 3)
-		relief := big.NewInt(reliefModifier)
-		m.items[i].Div(&m.items[i], relief)
+
+		// calculate worry relief
+		if !compress {
+			relief := big.NewInt(reliefModifier)
+			m.items[i].Div(&m.items[i], relief)
+		} else if compress {
+			relief := big.NewInt(reliefModifier)
+			bigRelief := relief.Mul(relief, &mmd)
+			m.items[i].Mod(&m.items[i], bigRelief)
+		}
 
 		// check if worry level is divisible by test operand
 		rem := big.NewInt(0)
@@ -142,7 +150,7 @@ func PrintMonkeyInspectedCounts(monkeys []Monkey) {
 	}
 }
 
-func GetLevelOfMonkeyBusiness(monkeys []Monkey) (lomb big.Int) {
+func GetLevelOfMonkeyBusiness(monkeys []Monkey) (lomb *big.Int) {
 	l1, l2 := big.NewInt(0), big.NewInt(0)
 	for _, monkey := range monkeys {
 		switch {
@@ -153,21 +161,32 @@ func GetLevelOfMonkeyBusiness(monkeys []Monkey) (lomb big.Int) {
 			l2.Set(&monkey.inspectedCount)
 		}
 	}
-	return *l2.Mul(l2, l1)
+	lomb = l2.Mul(l2, l1)
+	return lomb
 }
 
-func DoRounds(monkeys []Monkey, numRounds int, reliefFactor int, debug bool) (lomb big.Int) {
+func GetMultiMonkeyDivisor(monkeys []Monkey) (mmd big.Int) {
+	mmd = *big.NewInt(1)
+	for _, monkey := range monkeys {
+		mmd.Mul(&mmd, &monkey.testOperand)
+	}
+	return mmd
+}
+
+func DoRounds(monkeys []Monkey, numRounds int, reliefFactor int, compress bool, debug bool) (lomb *big.Int) {
 	for i := 0; i < numRounds; i++ {
 		if debug {
 			fmt.Println("round", i)
 		}
 		for j := range monkeys {
-			monkeys[j].DoOneTurn(&monkeys, int64(reliefFactor))
+			monkeys[j].DoOneTurn(&monkeys, int64(reliefFactor), compress)
 		}
 	}
+	lomb = GetLevelOfMonkeyBusiness(monkeys)
 	if debug {
 		PrintMonkeyStatus(monkeys)
 		PrintMonkeyInspectedCounts(monkeys)
+		fmt.Println("level of monkey business", lomb)
 	}
-	return GetLevelOfMonkeyBusiness(monkeys)
+	return lomb
 }
