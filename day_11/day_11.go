@@ -17,11 +17,11 @@ type Monkey struct {
 	testOperand     big.Int
 	testTrueDest    int
 	testFalseDest   int
-	inspectedCount  int
+	inspectedCount  big.Int
 }
 
 func (m Monkey) ToString() string {
-	return fmt.Sprintf(`Monkey\n
+	return fmt.Sprintf(`Monkey
 id: %v
 items: %v
 inspectOperator: %v
@@ -92,10 +92,11 @@ func makeMonkeys(filname string) (monkeyList []Monkey) {
 	return monkeyList
 }
 
-func (m *Monkey) DoOneTurn(monkeys *[]Monkey) {
+func (m *Monkey) DoOneTurn(monkeys *[]Monkey, reliefModifier int64) {
 	zeroBig := big.NewInt(0)
 	for i := range m.items {
-		m.inspectedCount++
+		bigOne := big.NewInt(1)
+		m.inspectedCount.Add(&m.inspectedCount, bigOne)
 		// update worry level
 		switch {
 		case m.inspectOperand == "old":
@@ -103,44 +104,30 @@ func (m *Monkey) DoOneTurn(monkeys *[]Monkey) {
 		case m.inspectOperator == "*":
 			operand, _ := strconv.Atoi(m.inspectOperand)
 			operandBig := big.NewInt(int64(operand))
-			if m.items[i].Mul(&m.items[i], operandBig).Cmp(zeroBig) < 0 {
-				fmt.Println("before")
-				fmt.Println(m.ToString())
-				fmt.Println("item:", m.items[i])
-				fmt.Println("operand:", operand)
-			}
-
 			m.items[i].Mul(&m.items[i], operandBig)
-			if m.items[i].Cmp(zeroBig) < 0 {
-				fmt.Println("illegal monkeybusiness!")
-				fmt.Println("after")
-				fmt.Println(m.ToString())
-				panic("cannot abide bad monkey business")
-			}
 		case m.inspectOperator == "+":
 			operand, _ := strconv.Atoi(m.inspectOperand)
 			operandBig := big.NewInt(int64(operand))
 			m.items[i].Add(&m.items[i], operandBig)
 		}
 		// calculate worry relief (worry / 3)
-		// m.items[i] /= 10
+		relief := big.NewInt(reliefModifier)
+		m.items[i].Div(&m.items[i], relief)
+
 		// check if worry level is divisible by test operand
 		rem := big.NewInt(0)
 		rem.Rem(&m.items[i], &m.testOperand)
-		fmt.Printf("val %v, testOperand %v, remainder %v\n", m.items[i], m.testOperand, rem)
 		switch {
-		case rem == zeroBig:
-			fmt.Println("assigning true monkey")
+		case rem.Cmp(zeroBig) == 0:
 			// assign item to true monkey
 			(*monkeys)[m.testTrueDest].items = append((*monkeys)[m.testTrueDest].items, m.items[i])
-		case rem != zeroBig:
-			fmt.Println("assigning false monkey")
-
+		case rem.Cmp(zeroBig) != 0:
 			// assign to false monkey's items
 			(*monkeys)[m.testFalseDest].items = append((*monkeys)[m.testFalseDest].items, m.items[i])
 		}
 	}
 	m.items = []big.Int{}
+
 }
 
 func PrintMonkeyStatus(monkeys []Monkey) {
@@ -155,30 +142,32 @@ func PrintMonkeyInspectedCounts(monkeys []Monkey) {
 	}
 }
 
-func GetLevelOfMonkeyBusiness(monkeys []Monkey) (lomb int) {
-	l1, l2 := 0, 0
+func GetLevelOfMonkeyBusiness(monkeys []Monkey) (lomb big.Int) {
+	l1, l2 := big.NewInt(0), big.NewInt(0)
 	for _, monkey := range monkeys {
-		if l1 < monkey.inspectedCount {
-			l2 = l1
-			l1 = monkey.inspectedCount
-		} else if l2 < monkey.inspectedCount {
-			l2 = monkey.inspectedCount
+		switch {
+		case monkey.inspectedCount.Cmp(l1) == 1:
+			l2.Set(l1)
+			l1.Set(&monkey.inspectedCount)
+		case monkey.inspectedCount.Cmp(l2) == 1:
+			l2.Set(&monkey.inspectedCount)
 		}
 	}
-	return l1 * l2
+	return *l2.Mul(l2, l1)
 }
 
-func main() {
-	monkeys := makeMonkeys("small_input.txt")
-	for i := 0; i < 20; i++ {
-		for j, _ := range monkeys {
-			monkeys[j].DoOneTurn(&monkeys)
+func DoRounds(monkeys []Monkey, numRounds int, reliefFactor int, debug bool) (lomb big.Int) {
+	for i := 0; i < numRounds; i++ {
+		if debug {
+			fmt.Println("round", i)
+		}
+		for j := range monkeys {
+			monkeys[j].DoOneTurn(&monkeys, int64(reliefFactor))
 		}
 	}
-
-	// PrintMonkeyStatus(monkeys)
-	PrintMonkeyInspectedCounts(monkeys)
-	fmt.Println(GetLevelOfMonkeyBusiness(monkeys))
-	// 2637590098 too low for large input
-
+	if debug {
+		PrintMonkeyStatus(monkeys)
+		PrintMonkeyInspectedCounts(monkeys)
+	}
+	return GetLevelOfMonkeyBusiness(monkeys)
 }
