@@ -43,14 +43,10 @@ type Point struct {
 
 func (p Point) GetNeighbors(heightmap [][]int) (neighbors []Point) {
 	modifiers := [][]int{
-		{0, -1},  // 12:00
-		{1, -1},  // 1:30
-		{1, 0},   // 3:00
-		{1, 1},   // 4:30
-		{0, 1},   // 6:00
-		{-1, 1},  // 7:30
-		{-1, 0},  // 9:00
-		{-1, -1}, // 10:30
+		{0, -1}, // 12:00
+		{1, 0},  // 3:00
+		{0, 1},  // 6:00
+		{-1, 0}, // 9:00
 	}
 	for _, modifier := range modifiers {
 		x, y := p.x-modifier[0], p.y-modifier[1]
@@ -69,7 +65,7 @@ func (p Point) FilterNeighborsByHeight(heightmap [][]int, neighbors []Point, gra
 	pHeight := heightmap[p.y][p.x]
 	for _, n := range neighbors {
 		nHeight := heightmap[n.y][n.x]
-		if pHeight-1 <= nHeight && nHeight <= pHeight+1 {
+		if nHeight <= pHeight+1 {
 			reachableNeighbors = append(reachableNeighbors, n)
 		}
 	}
@@ -96,8 +92,10 @@ func PrintPath(heightmap [][]int, path []Point) {
 		for j := range heightmap[i] {
 			if _, found := pathMap[Point{j, i}]; found {
 				fmt.Print("X ")
+			} else {
+				fmt.Print(". ")
+
 			}
-			fmt.Print(heightmap[i][j], " ")
 		}
 		fmt.Print("\n")
 	}
@@ -122,13 +120,14 @@ func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, 
 		node := queue[0]
 		queue = queue[1:]
 		count++
-		fmt.Println("cycle", count)
-		fmt.Println("node", node)
-		fmt.Println("queue start", queue)
-		fmt.Println("graph start", graph)
-		if _, visited := graph[node]; visited {
-			continue
-		}
+		// fmt.Println("cycle", count)
+		// fmt.Println("node", node)
+		// fmt.Println("queue start", queue)
+		// fmt.Println("graph start", graph)
+
+		// if _, visited := graph[node]; visited {
+		// 	continue
+		// }
 
 		if node == end {
 			fmt.Println("FOUND END!", end)
@@ -139,9 +138,9 @@ func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, 
 
 		neighbors := node.GetNeighbors(heightmap)
 		neighbors = node.FilterNeighborsByVisited(neighbors, graph)
-				neighbors = node.FilterNeighborsByHeight(heightmap, neighbors, graph)
+		neighbors = node.FilterNeighborsByHeight(heightmap, neighbors, graph)
 
-		fmt.Println("neighbors", neighbors)
+		// fmt.Println("neighbors", neighbors)
 
 		// for each neighbor, if the neighbor is reachable and unvisited add the neighbor to the node's adjacency list
 		// add current node as parent of neighbor
@@ -151,15 +150,17 @@ func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, 
 			graph[node] = append(graph[node], neighbor)
 		}
 
-		fmt.Println("queue end", queue)
-		fmt.Println()
+		// fmt.Println("queue end", queue)
+		// fmt.Println()
 
 	}
 
 	if endFound {
-		path = []Point{end}
+		path = []Point{start, end}
 		for node, ok := parents[end]; ok && node != start; node, ok = parents[node] {
 			path = append([]Point{node}, path...) // prepend point to path
+			PrintPath(heightmap, path)
+			fmt.Println()
 		}
 		numSteps = len(path) - 1
 	}
