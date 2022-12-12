@@ -51,8 +51,24 @@ func CycleIsInteresting(cycleNumber int, target int) bool {
 	return false
 }
 
-func SpriteVisible(x int, cycles int) bool {
-	return x-2 < cycles && cycles < x+2
+func SpriteVisible(x int, cycle int) bool {
+	beam := (cycle - 1) % 40
+	return x-2 < beam && beam < x+2
+}
+
+func DisplayOutputToString(displayOutput [240]bool) (ret string) {
+	for i, pixel := range displayOutput {
+		if i > 39 && i%40 == 0 {
+			ret += "\n"
+		}
+		if pixel {
+			ret += "#"
+		} else {
+			ret += "."
+		}
+
+	}
+	return ret
 }
 
 func doInstruction(instr *Instruction, X *int, cycles *int) (instructionCompleted bool) {
@@ -70,35 +86,21 @@ func doInstruction(instr *Instruction, X *int, cycles *int) (instructionComplete
 
 func Process(data []Instruction) (sigStrength int, displayOutput [240]bool) {
 	X := 1
-	cycles := 1
+	cycle := 1
 	for i := 0; i < len(data); {
 		data[i].currentCycle++
-
-		if CycleIsInteresting(cycles, 40) {
-			fmt.Println("Instruction", i)
-			fmt.Println("sigStrength", sigStrength)
-			fmt.Println("cycles", cycles, "register", X)
-			sigStrength += (cycles * X)
-			fmt.Println("cycles", cycles, "register", X)
-			fmt.Println("sigStrength", sigStrength)
-			fmt.Println()
+		if CycleIsInteresting(cycle, 40) {
+			sigStrength += (cycle * X)
 		}
-		if SpriteVisible(X, cycles) {
-			displayOutput[X] = true
+		if SpriteVisible(X, cycle) {
+			displayOutput[cycle-1] = true
 		}
-		instructionCompleted := doInstruction(&data[i], &X, &cycles)
-		cycles++
+		instructionCompleted := doInstruction(&data[i], &X, &cycle)
+		cycle++
 		if instructionCompleted {
 			i++
 		}
 
 	}
 	return sigStrength, displayOutput
-}
-
-func main() {
-	instructions := GetInput("large_input.txt")
-	sigStrength, _ := Process(instructions)
-	fmt.Println(sigStrength)
-
 }
