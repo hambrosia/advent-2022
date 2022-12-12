@@ -125,9 +125,9 @@ func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, 
 		// fmt.Println("queue start", queue)
 		// fmt.Println("graph start", graph)
 
-		// if _, visited := graph[node]; visited {
-		// 	continue
-		// }
+		if _, visited := graph[node]; visited {
+			continue
+		}
 
 		if node == end {
 			fmt.Println("FOUND END!", end)

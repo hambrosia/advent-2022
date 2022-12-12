@@ -19,8 +19,14 @@ func TestD12(t *testing.T) {
 		fmt.Println()
 	}
 
-	// heightmap, start, end = GetInput("large_input.txt")
-	// gotLarge, _ := FindShortestPath(heightmap, start, end)
-	// AssertEquals(t, gotLarge, 31)
+	heightmap, start, end = GetInput("large_input.txt")
+	gotLarge, _ := FindShortestPath(heightmap, start, end)
+	AssertEquals(t, gotLarge, 447)
+
+	heightmap, _, end := GetInput("small_input.txt")
+	elevation := 0
+	gotSteps, gotPath := FindShortestPathFromElevation(heightmap, elevation, end)
+	PrintPath(heightmap, gotPath)
+	AssertEquals(t, gotSteps, 31)
 
 }
