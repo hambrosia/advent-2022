@@ -101,36 +101,29 @@ func PrintPath(heightmap [][]int, path []Point) {
 	}
 }
 
-func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, path []Point) {
+func FindShortestPath(heightmap [][]int, start Point, end Point, debug bool) (numSteps int, path []Point) {
 	// bfs requires input to be a graph, we can try making it as we go along
 	// the FilterNeighborsByHeight function can be used as the adjacency list for a node
 
 	// use slice as FIFO queue
 	queue := []Point{}
 	queue = append(queue, start)
-	// graph is an adjacency list of points to reachable neighbor points
 
-	graph := map[Point][]Point{} // just used to keep track of visited, but could be useful in p2
+	// graph is an adjacency list of points to reachable neighbor points
+	graph := map[Point][]Point{}
 	parents := map[Point]Point{}
 
 	endFound := false
-	count := 0
 	for len(queue) > 0 {
 		// pop a node from the front of the queue
 		node := queue[0]
 		queue = queue[1:]
-		count++
-		// fmt.Println("cycle", count)
-		// fmt.Println("node", node)
-		// fmt.Println("queue start", queue)
-		// fmt.Println("graph start", graph)
 
 		if _, visited := graph[node]; visited {
 			continue
 		}
 
 		if node == end {
-			fmt.Println("FOUND END!", end)
 			graph[node] = []Point{}
 			endFound = true
 			break
@@ -140,8 +133,6 @@ func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, 
 		neighbors = node.FilterNeighborsByVisited(neighbors, graph)
 		neighbors = node.FilterNeighborsByHeight(heightmap, neighbors, graph)
 
-		// fmt.Println("neighbors", neighbors)
-
 		// for each neighbor, if the neighbor is reachable and unvisited add the neighbor to the node's adjacency list
 		// add current node as parent of neighbor
 		for _, neighbor := range neighbors {
@@ -150,20 +141,40 @@ func FindShortestPath(heightmap [][]int, start Point, end Point) (numSteps int, 
 			graph[node] = append(graph[node], neighbor)
 		}
 
-		// fmt.Println("queue end", queue)
-		// fmt.Println()
-
 	}
 
 	if endFound {
 		path = []Point{start, end}
 		for node, ok := parents[end]; ok && node != start; node, ok = parents[node] {
 			path = append([]Point{node}, path...) // prepend point to path
-			PrintPath(heightmap, path)
-			fmt.Println()
+			if debug {
+				PrintPath(heightmap, path)
+				fmt.Println()
+			}
+
 		}
 		numSteps = len(path) - 1
 	}
 
 	return numSteps, path
+}
+
+func FindShortestPathFromElevation(heightmap [][]int, startingElevation int, end Point, debug bool) (lenShortestPath int) {
+	starts := []Point{}
+	for i := range heightmap {
+		for j := range heightmap[i] {
+			height := heightmap[i][j]
+			if height == startingElevation {
+				starts = append(starts, Point{j, i})
+			}
+		}
+	}
+	lenShortestPath = -1
+	for _, start := range starts {
+		lenPath, _ := FindShortestPath(heightmap, start, end, debug)
+		if (lenShortestPath == -1 || lenPath < lenShortestPath) && lenPath != 0 {
+			lenShortestPath = lenPath
+		}
+	}
+	return lenShortestPath
 }
