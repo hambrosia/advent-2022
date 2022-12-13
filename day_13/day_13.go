@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+
+	. "github.com/hambrosia/advent-2022/helpers"
 )
 
 func GetInput(filename string) (res []string) {
@@ -45,7 +47,11 @@ func PackToStack(packet string) (values []int, separators []string) {
 	return values, separators
 }
 
-func ComparePackets(packets []string) (sumRightOrderIndices int) {
+func PacketsInOrder(p1Values []int, p1Separators []string, p2Values []int, p2Separators []string) (inOrder bool) {
+	return inOrder
+}
+
+func ComparePackets(packets []string, debug bool) (sumRightOrderIndices int) {
 	// for each packet pair (list of list or int)
 	// left side is p1, right side is p2
 	// condition 1
@@ -72,18 +78,16 @@ func ComparePackets(packets []string) (sumRightOrderIndices int) {
 		p1 := packets[i]
 		p2 := packets[i+1]
 		index := ((i + 2) / 3) + 1
-		fmt.Println("index", index)
-		fmt.Println("pair", p1, p2)
-
-		// p2Values := []int{}
-		// p2Separators := []string{}
+		DebugPrint(debug, "index %v", index)
+		DebugPrint(debug, "pair %v, %v", p1, p2)
 
 		p1Values, p1Separators := PackToStack(p1)
-		fmt.Println("p1 separators", p1Separators)
-		fmt.Println("p1 values", p1Values)
+		DebugPrint(debug, "p1 separators %v", p1Separators)
+		DebugPrint(debug, "p1 values %v", p1Values)
+
 		p2Values, p2Separators := PackToStack(p2)
-		fmt.Println("p2 separators", p2Separators)
-		fmt.Println("p2 values", p2Values)
+		DebugPrint(debug, "p2 separators %v", p2Separators)
+		DebugPrint(debug, "p2 values %v", p2Values)
 
 	}
 

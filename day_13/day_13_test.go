@@ -6,6 +6,6 @@ import (
 
 func TestD13(t *testing.T) {
 	p1SmallInput := GetInput("large_input.txt")
-	ComparePackets(p1SmallInput)
+	ComparePackets(p1SmallInput, true)
 	// wantP1Small := 13
 }
