@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
+	"reflect"
 
 	. "github.com/hambrosia/advent-2022/helpers"
 )
@@ -25,69 +27,50 @@ func GetInput(filename string) (res []string) {
 	return res
 }
 
-func PackToStack(packet string) (values []int, separators []string) {
-	separator := map[string]bool{
-		"[": true,
-		"]": true,
-		",": false,
-	}
-	for i := 0; i < len(packet); i++ {
-		b := packet[i]
+func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}, debug bool) (inOrder bool) {
+
+	for lI, rI := 0, 0; lI < len(leftSlice) && rI < len(leftSlice); lI, rI = lI+1, rI+1 {
+		left, right := leftSlice[lI], rightSlice[rI]
+		leftType, rightType := reflect.TypeOf(left).Kind(), reflect.TypeOf(right).Kind()
+
 		switch {
-		case separator[string(b)]:
-			separators = append(separators, string(b))
-		case string(b) == "1" && string(packet[i+1]) == "0":
-			// 10
-			values = append(values, 10)
-			i++
-		case 48 <= b && b <= 57:
-			values = append(values, int(b-48))
+		case leftType == reflect.Float64 && rightType == reflect.Float64 && left.(float64) > right.(float64):
+			return false
+		case leftType == reflect.Slice && rightType == reflect.Slice:
+			return PacketsInOrder(left.([]interface{}), right.([]interface{}), debug)
+		case leftType != rightType:
+			if leftType == reflect.Float64 {
+				return PacketsInOrder([]interface{}{left}, right.([]interface{}), debug)
+			} else {
+				DebugPrint(debug, "left %v %T", left, left)
+				DebugPrint(debug, "right %v %T", right, right)
+				return PacketsInOrder(left.([]interface{}), []interface{}{right}, debug)
+			}
 		}
+
+		// TODO() check indexes and lengths
 	}
-	return values, separators
+
+	return true
 }
 
-func PacketsInOrder(p1Values []int, p1Separators []string, p2Values []int, p2Separators []string) (inOrder bool) {
-	return inOrder
-}
-
-func ComparePackets(packets []string, debug bool) (sumRightOrderIndices int) {
-	// for each packet pair (list of list or int)
-	// left side is p1, right side is p2
-	// condition 1
-	// if both values are integers and left is not less than right, fail
-
-	// condition 2
-	// if both values are lists, compare the first value of each value in each list and continue
-	// if left list runs out of items first the inputs are in the right order
-	// if right list runs out of items first fail
-	// if lists have same length and are identical, move to the next part of the input
-
-	// condition 3
-	// if exactly one value is an integer, convert the integer to a list with only that integer as its value, then compare again
-
-	// TLDR
-	// as soon as a comparison shows the left side is smaller, the packets are in the right order and you can continue
-	// as soon as a comparison shows the right side is smaller, the packers are in the WRONG order, mark and continue
-
-	// pairs are index from 1, p1 has index 1, p2 index 2 etc.
-
-	// return sum of indices of packets in the right order
-
+func SumPacketsInOrder(packets []string, debug bool) (sumRightOrderIndices int) {
 	for i := 0; i < len(packets); i += 2 {
 		p1 := packets[i]
 		p2 := packets[i+1]
 		index := ((i + 2) / 3) + 1
-		DebugPrint(debug, "index %v", index)
-		DebugPrint(debug, "pair %v, %v", p1, p2)
 
-		p1Values, p1Separators := PackToStack(p1)
-		DebugPrint(debug, "p1 separators %v", p1Separators)
-		DebugPrint(debug, "p1 values %v", p1Values)
+		left, right := []interface{}{}, []interface{}{}
+		json.Unmarshal([]byte(p1), &left)
+		json.Unmarshal([]byte(p2), &right)
 
-		p2Values, p2Separators := PackToStack(p2)
-		DebugPrint(debug, "p2 separators %v", p2Separators)
-		DebugPrint(debug, "p2 values %v", p2Values)
+		DebugPrint(debug, "pair %v", index)
+		inOrder := PacketsInOrder(left, right, debug)
+		DebugPrint(debug, "in order %v", inOrder)
+
+		if inOrder {
+			sumRightOrderIndices += index
+		}
 
 	}
 
