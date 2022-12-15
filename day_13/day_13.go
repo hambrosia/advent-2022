@@ -57,17 +57,24 @@ func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}, debug boo
 }
 
 func SumPacketsInOrder(packets []string, debug bool) (sumRightOrderIndices int) {
-	for i := 0; i < len(packets); i += 3 {
+	for i := 0; i < len(packets); i = i + 2 {
+		index := (i / 2) + 1
+		DebugPrint(debug, "pair %v ++++++++++", index)
+		j := i + 1
+		DebugPrint(debug, "index of p1 %v", i)
+		DebugPrint(debug, "index of p2 %v", j)
 		p1 := packets[i]
 		p2 := packets[i+1]
-		index := ((i + 2) / 3) + 1
 
 		left, right := []interface{}{}, []interface{}{}
 		json.Unmarshal([]byte(p1), &left)
 		json.Unmarshal([]byte(p2), &right)
 
-		DebugPrint(debug, "pair %v ++++++++++", index)
-		inOrder := PacketsInOrder(left, right, debug)
+		DebugPrint(debug, "p1 %v", p1)
+		DebugPrint(debug, "p2 %v", p2)
+		DebugPrint(debug, "left %v", left)
+		DebugPrint(debug, "right %v", right)
+		inOrder := PacketsInOrder(left, right, false)
 		DebugPrint(debug, "in order %v ++++++++++", inOrder)
 
 		if inOrder {
