@@ -29,34 +29,50 @@ func GetInput(filename string) (res []string) {
 
 func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}, debug bool) (inOrder bool) {
 
-	DebugPrint(debug, "leftSlice %v", leftSlice)
-	DebugPrint(debug, "rightSlice %v", rightSlice)
+	DebugPrint(debug, "compare before loop %v vs %v", leftSlice, rightSlice)
 
-	DebugPrint(debug, "l: %v, r %v", leftSlice, rightSlice)
-	for lI, rI := 0, 0; lI < len(leftSlice) && rI < len(leftSlice); lI, rI = lI+1, rI+1 {
+	for lI, rI := 0, 0; lI < len(leftSlice) || rI < len(leftSlice); lI, rI = lI+1, rI+1 {
 		DebugPrint(debug, "peeking to check which slice will run out")
 		if rI >= len(rightSlice) && lI < len(leftSlice) {
+			DebugPrint(debug, "Right side ran out")
+			DebugPrint(debug, "type l %T, type r %T", rightSlice, leftSlice)
+			DebugPrint(debug, "left slice %v, right slice %v", leftSlice, rightSlice)
+			DebugPrint(debug, "rI %v, lI %v, len r %v, len l %v", rI, lI, len(rightSlice), len(leftSlice))
+			// TODO() Start here, why are leftSlice and rightSlice pointing to the outermost function's inputs?
 			return false
 		} else if rI < len(rightSlice) && lI >= len(leftSlice) {
+			DebugPrint(debug, "Left side ran out")
 			return true
 		}
+
 		DebugPrint(debug, "about to key into slices")
 		left, right := leftSlice[lI], rightSlice[rI]
 		leftType, rightType := reflect.TypeOf(left).Kind(), reflect.TypeOf(right).Kind()
-		DebugPrint(debug, "left %v", left)
-		DebugPrint(debug, "right %v", right)
+		DebugPrint(debug, "compare %v vs %v", left, right)
+
 		switch {
 		case leftType == reflect.Float64 && rightType == reflect.Float64 && left.(float64) > right.(float64):
-			DebugPrint(debug, "both int")
+			DebugPrint(debug, "both int, left higher than right")
 			return false
+		case leftType == reflect.Float64 && rightType == reflect.Float64 && left.(float64) < right.(float64):
+			DebugPrint(debug, "both int, right higher than left")
+			return true
 		case leftType == reflect.Slice && rightType == reflect.Slice:
 			DebugPrint(debug, "both slice")
-			return PacketsInOrder(left.([]interface{}), right.([]interface{}), debug)
+			if PacketsInOrder(left.([]interface{}), right.([]interface{}), debug) {
+				continue
+			} else {
+				return false
+			}
 		case leftType != rightType:
 			DebugPrint(debug, "one int, one slice")
 			if leftType == reflect.Float64 {
+				DebugPrint(debug, "left is num")
 				return PacketsInOrder([]interface{}{left}, right.([]interface{}), debug)
 			} else {
+				DebugPrint(debug, "right is num")
+				DebugPrint(debug, "left %v right %v", left, right)
+				DebugPrint(debug, "left translate %v, right translate %v", left.([]interface{}), []interface{}{right})
 				return PacketsInOrder(left.([]interface{}), []interface{}{right}, debug)
 			}
 		default:
@@ -79,12 +95,9 @@ func SumPacketsInOrder(packets []string, debug bool) (sumRightOrderIndices int) 
 		json.Unmarshal([]byte(p1), &left)
 		json.Unmarshal([]byte(p2), &right)
 
-		// DebugPrint(debug, "p1 %v", p1)
-		// DebugPrint(debug, "p2 %v", p2)
-		DebugPrint(debug, "left %v", left)
-		DebugPrint(debug, "right %v", right)
 		inOrder := PacketsInOrder(left, right, debug)
 		DebugPrint(debug, "in order %v ++++++++++", inOrder)
+		fmt.Println()
 
 		if inOrder {
 			sumRightOrderIndices += index
