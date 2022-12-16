@@ -25,16 +25,16 @@ func GetInput(filename string) (res []string) {
 	return res
 }
 
-func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder bool) {
+func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder int) {
 	fmt.Printf("compare %v vs %v\n", leftSlice, rightSlice)
 
-	for lI, rI := 0, 0; lI < len(leftSlice) || rI < len(leftSlice); lI, rI = lI+1, rI+1 {
+	for lI, rI := 0, 0; lI < len(leftSlice) || rI < len(rightSlice); lI, rI = lI+1, rI+1 {
 
 		// peek to see if either packet will run out this cycle
 		if rI >= len(rightSlice) && lI < len(leftSlice) {
-			return false
+			return -1
 		} else if rI < len(rightSlice) && lI >= len(leftSlice) {
-			return true
+			return 1
 		}
 
 		left, right := leftSlice[lI], rightSlice[rI]
@@ -43,14 +43,17 @@ func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder 
 
 		switch {
 		case leftType == reflect.Float64 && rightType == reflect.Float64 && left.(float64) > right.(float64):
-			return false
+			return -1
 		case leftType == reflect.Float64 && rightType == reflect.Float64 && left.(float64) < right.(float64):
-			return true
+			return 1
 		case leftType == reflect.Slice && rightType == reflect.Slice:
-			if PacketsInOrder(left.([]interface{}), right.([]interface{})) {
+			packsInOrder := PacketsInOrder(left.([]interface{}), right.([]interface{}))
+			if packsInOrder == 0 {
 				continue
+			} else if packsInOrder == -1 {
+				return -1
 			} else {
-				return false
+				return 1
 			}
 		case leftType != rightType:
 			if leftType == reflect.Float64 {
@@ -59,10 +62,8 @@ func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder 
 				return PacketsInOrder(left.([]interface{}), []interface{}{right})
 			}
 		}
-
 	}
-
-	return true
+	return 0
 }
 
 func SumPacketsInOrder(packets []string) (sumRightOrderIndices int) {
@@ -77,9 +78,12 @@ func SumPacketsInOrder(packets []string) (sumRightOrderIndices int) {
 		json.Unmarshal([]byte(p2), &right)
 
 		inOrder := PacketsInOrder(left, right)
-		fmt.Println("in order", inOrder)
-		if inOrder {
+		fmt.Println("result", inOrder)
+		if inOrder == 1 {
 			sumRightOrderIndices += index
+			fmt.Println("in order", true)
+		} else {
+			fmt.Println("in order", false)
 		}
 		fmt.Println()
 
