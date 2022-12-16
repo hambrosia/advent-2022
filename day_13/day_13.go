@@ -29,6 +29,8 @@ func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder 
 	fmt.Printf("compare %v vs %v\n", leftSlice, rightSlice)
 
 	for lI, rI := 0, 0; lI < len(leftSlice) || rI < len(leftSlice); lI, rI = lI+1, rI+1 {
+
+		// peek to see if either packet will run out this cycle
 		if rI >= len(rightSlice) && lI < len(leftSlice) {
 			return false
 		} else if rI < len(rightSlice) && lI >= len(leftSlice) {
@@ -37,6 +39,7 @@ func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder 
 
 		left, right := leftSlice[lI], rightSlice[rI]
 		leftType, rightType := reflect.TypeOf(left).Kind(), reflect.TypeOf(right).Kind()
+		fmt.Printf("compare %v vs %v\n", left, right)
 
 		switch {
 		case leftType == reflect.Float64 && rightType == reflect.Float64 && left.(float64) > right.(float64):
@@ -62,7 +65,7 @@ func PacketsInOrder(leftSlice []interface{}, rightSlice []interface{}) (inOrder 
 	return true
 }
 
-func SumPacketsInOrder(packets []string, debug bool) (sumRightOrderIndices int) {
+func SumPacketsInOrder(packets []string) (sumRightOrderIndices int) {
 	for i := 0; i < len(packets); i = i + 2 {
 		index := (i / 2) + 1
 		fmt.Println("Pair", index)
